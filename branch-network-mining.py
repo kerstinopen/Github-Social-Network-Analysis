@@ -15,6 +15,9 @@
 # install NetworkX with pip install networkx
 # sub-directory called Results
 #
+# Parameter :
+# Id of the repository to analyse
+#
 # PyGitHub documentation can be found here: 
 # https://github.com/jacquev6/PyGithub
 # http://pygithub.readthedocs.io/en/latest/reference.html
@@ -28,6 +31,7 @@ import networkx as nx
 import getpass
 import random
 import os
+import sys
 
 # Clear screen
 os.system('cls' if os.name=='nt' else 'clear')
@@ -104,26 +108,20 @@ def analyse_repo(repository):
                 "target":currentCommitSha})
 
     # write the xml file
-    ElementTree(graphml).write("./Results/"+chosenRepo.name + "_commit_structure.graphml")
-
-
+    ElementTree(graphml).write("./Results/"+repository.name + "_commit_structure.graphml")
 
 
 
 if __name__ == "__main__":
+    # get the repository ID given as parameter to the script
+    repoId = sys.argv[1]
+
     # login
     userlogin = input("Login: Enter your username: ")
     password = getpass.getpass("Login: Enter your password: ")
     g = pygithub3.Github( userlogin, password )
     
-    # ask user to repository to analyse
-    reponame = input("Enter the name of the repository you want to analyse: ")
-    queryResult = g.search_repositories(reponame+ " in:name")
-    index = 0
-    for i in queryResult:
-        print ("type ",index," for ",i.owner.login,"/",i.name)
-        index += 1
-    chosenIndex = input("type a number and press enter: ");
-    chosenRepo = queryResult.get_page(0)[int(chosenIndex)]
-    print ("Analysis of repository ",chosenRepo.name)
-    analyse_repo(chosenRepo)
+    # get the repository object and call analysis function 
+    repo = g.get_repo(int(repoId))
+    print ("Analysis of repository ",repo.name)
+    analyse_repo(repo)
