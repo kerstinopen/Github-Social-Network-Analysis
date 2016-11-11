@@ -63,6 +63,37 @@ def analyse_repo(repository):
     # each user is associated with a node color
     colorDictionary = {}
     
+        # Anfang Änderungen
+    
+    # Ich bin noch dabei, die commits der branches zu extrahieren, habe das bisher noch nicht geschafft, weil das ziemlich verschachtelt ist
+    # https://developer.github.com/v3/repos/branches/#list-branches
+    # danach können wir das dann richtig in branch-network-mining.py einbetten
+
+
+    for branch in repository.get_branches():
+        print(branch.name)
+        chosenName = input("type the branch name: ")
+        # auf dem Network Graph sind 3 Branches zu sehen,
+        # genannt werden 2 Branches,
+        # angezeigt wird aber nur einer?!
+
+
+        print(branch.commit.sha)
+
+        # print(branch.commit.commit.committer.name.name)
+        # print(branch.commit.commit.author.name.date())
+        for i in branch.commit.parents():
+            print (i.sha)
+
+        print(branch.commit.parents.sha)
+        currentCommitSha = branch.commit.sha
+        currentCommitCommitter = branch.author.login
+        index += 1
+        print ("commit ", index, " : ", currentCommitSha)
+
+    # Ende Änderungen
+    
+    
     # generate network
     for i in repository.get_commits():
         currentCommitSha = i.sha
@@ -88,7 +119,7 @@ def analyse_repo(repository):
         Shape= SubElement(shapeNode, "y:Shape", {"type":"retangle"})
         Geometry= SubElement(shapeNode, "y:Geometry", {"height":"15.0", "width":"60"})
         Fill = SubElement(shapeNode, "y:Fill", {"color":colorDictionary[currentCommitCommitter], "transparent":"false"})
-        BorderStyle = SubElement(shapeNode, "y:BoderStyle", {"hasColor":"false", "type":"line", "width":"1.0"}) # does not work and i don't know why :-(
+        BorderStyle = SubElement(shapeNode, "y:BorderStyle", {"color":"#ffffff", "type":"line", "width":"1.0"})
         NodeLabel.text = str(currentCommitSha[:7])
 
         # add node attributes
