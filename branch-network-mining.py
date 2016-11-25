@@ -14,6 +14,8 @@
 # install pyGithub with pip install PyGithub
 # install pygithub3 with pip install pygithub3
 # install NetworkX with pip install networkx
+# install Requests
+# install Json
 # sub-directory called Results
 #
 # Parameter :
@@ -34,8 +36,8 @@ import random
 import os
 import sys
 import requests
-
-
+import json
+from lxml import html
 
 # Clear screen
 os.system('cls' if os.name=='nt' else 'clear')
@@ -49,6 +51,10 @@ from xml.etree.ElementTree import Element, SubElement, Comment, ElementTree
 
 
 # https://pygithub.readthedocs.io/en/latest/github_objects/Commit.html?
+
+# das Gute: alle commits werden jetzt angezeigt
+# das Schlechte: die commits in den forks werden teilweise mehrfach angezeigt
+# und: funktioniert nur, wenn json Struktur gleich bleibt
 
 def analyse_repo(repository):
     index = 0;
@@ -74,97 +80,79 @@ def analyse_repo(repository):
     # each user is associated with a node color
     colorDictionary = {}
     
-    # generate network
-    j = 0
-    for i in repository.get_branches():
-        j += 1
-        print("branch #", j)
-        print("name: ", i.name)
-        print("commit sha: ", i.commit.sha)
-        print("commit url: ", i.commit.url)
-        print("")
-        
+
+    # nur für jetzt:
+
+    # for i in repository.get_commits():
+    #     currentCommitSha = i.sha
+    #     currentCommitCommitter = i.author.login
+    #     currentCommitUrl = i.url
+
+    #     for k in i.get_comments():
+    #         currentCommitCommentBody = k.body
+    #         currentCommitCommentDate = k.created_at.date()
+    #         currentCommitCommentCreator = k.user.login
+
+    #     index += 1
+    #     print ("commit ", index, " : ", currentCommitSha)
+
 
 
     k = 0
     for i in repository.get_forks():
         k += 1
-        print ("fork #", k)
 
-        print ("ID: ", i.id)
-        print ("owner: ", i.owner.login)
-        print("name: ", i.name)
-        print("default branch: ", i.default_branch)
-
-        print ("description: ", i.description)
-        print ("url: ", i.url)
-        print("#forks :", i.forks_count)
-        print("# open issues: ", i.open_issues_count)
-        print("pushed at: ", i.pushed_at.date())
-        print("created at: ", i.created_at.date())
-
-
-        print(i.branches_url) #url kopieren, statt "{/branch}" den branch name eingeben,
-        # wenn im network nach branches gesucht wird können alle angezeigt werden
-        # >> wie bekommt man die automatisch angezeigt?
-        #https://api.github.com/repos/iloveopensource123/currentopen123/branches
-        #https://api.github.com/repos/{user name}/{repo name}/branches
-        #user name: i.owner.login, repo name: i.name
-
-
-        # link = "https://api.github.com/repos/'{username}'/'{reponame}'/branches".format('i.owner.login','i.name')
-        # link = "https://api.github.com/repos/username/reponame/branches", username= {'i.owner.login'}, reponame={'i.name'}
-        
-        # f = requests.get("https://api.github.com/repos/username/reponame/branches", username= {'i.owner.login'}, reponame={'i.name'})
-       
-        # params = {"username": i.owner.login, "reponame":i.name}
-        # f = requests.get("https://api.github.com/repos/username/reponame/branches", params= params)
-
-
-
-
-        import json
-        from lxml import html
-        r = requests.get("https://api.github.com/repos/iloveopensource123/currentopen123/branches")
-
+        r = requests.get("https://api.github.com/repos/{}/{}/branches".format(i.owner.login,i.name))
         j = json.loads(r.text)
 
-        print (j[0]['name'])
-        print (j[0]['commit']['sha'])
-            
-        # funktioniert bei mir noch nicht wegen lxml-Problemen, sobald ich das zum Laufen bekommen hab gucke ich, wie das sinnvoll in den bisherigen
-        # Code integriert werden kann
+        # # k: ktes (Dictionary-)Element der Liste l
+        l=0
+        # for k, tupel in enumerate((l[0], l[0][1]) for l in j):
 
+        for k, tupel in enumerate((l['name'], l['commit']['sha'] ) for l in j):
+            (name,sha) = tupel
+            print("")
+            print("branch # ",(k+1),"\n", "name: ", name,"\n", "sha: ", sha)
+            print("")
 
-        
-        print(i.commits_url)
+        t = requests.get("https://api.github.com/repos/{}/{}/branches/{}".format(i.owner.login,i.name,name))
+        h = json.loads(t.text)
+
+        sha = h['commit']['sha']
+        o = repository.get_commit(sha)
+        currentCommitSha_1 = o.sha
+        currentCommitCommitter_1 = o.author.login
+        currentCommitUrl_1 = o.url
+        print("commit", o.sha)
+        # die commit sha wird für jede fork, in der der commit auftaucht, angegeben
+        # --> wenn 5 Leute das repo geforkt haben, tritt die commit sha 5 mal auf
         print("")
+
+        # index_1=0
+        # for b in repository.get_commits():
+          
+        #     if b.sha != sha:
+        #         print("sha: ",currentCommitSha_1)
+        #         print("committer:", currentCommitCommitter_1)
+        #     # print("url: ",currentCommitUrl_1)
+
+        #     # das sollte eigentlich noch nicht funktionieren:
+        #     # index_1=0
+
+        #     for k in o.get_comments():
+        #         currentCommitCommentBody_1 = k.body
+        #         currentCommitCommentDate_1 = k.created_at.date()
+        #         currentCommitCommentCreator_1 = k.user.login
+
+        #     index_1 += 1
+        #     print ("commit ", index_1, " : ", currentCommitSha_1)
+        #     print("")
+
 
 
     for i in repository.get_commits():
-        currentCommitSha = i.sha
-        currentCommitCommitter = i.author.login
-        currentCommitUrl = i.url
-
-        for k in i.get_comments():
-            currentCommitCommentBody = k.body
-            currentCommitCommentDate = k.created_at.date()
-            currentCommitCommentCreator = k.user.login
 
 
-
-
-        
-
-        index += 1
-        print ("commit ", index, " : ", currentCommitSha)
-
-        # for k in i.get_comments():
-        #     print (k.body)
-        #     print (k.created_at.date())
-        #     print (k.user.login)
-
- 
         # update color dictionary
         # if there is no color associated with the user, insert a new random HTML color in the dictionary
         if currentCommitCommitter not in colorDictionary.keys():
@@ -188,7 +176,8 @@ def analyse_repo(repository):
 
         # add node attributes
         attributeData = SubElement(node, "data", {"key":"attrAuthor"})
-        attributeData.text = str(i.author.login)
+        if i.author.login !=None:
+            attributeData.text = str(i.author.login)
         attributeData = SubElement(node, "data", {"key":"attrComment"})
         attributeData.text = str(i.commit.message)
         attributeData = SubElement(node, "data", {"key":"attrUrl"})
