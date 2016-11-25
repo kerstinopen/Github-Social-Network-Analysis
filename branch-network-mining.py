@@ -83,18 +83,18 @@ def analyse_repo(repository):
 
     # nur für jetzt:
 
-    # for i in repository.get_commits():
-    #     currentCommitSha = i.sha
-    #     currentCommitCommitter = i.author.login
-    #     currentCommitUrl = i.url
+    for i in repository.get_commits():
+        currentCommitSha = i.sha
+        currentCommitCommitter = i.author.login
+        currentCommitUrl = i.url
 
-    #     for k in i.get_comments():
-    #         currentCommitCommentBody = k.body
-    #         currentCommitCommentDate = k.created_at.date()
-    #         currentCommitCommentCreator = k.user.login
+        for k in i.get_comments():
+            currentCommitCommentBody = k.body
+            currentCommitCommentDate = k.created_at.date()
+            currentCommitCommentCreator = k.user.login
 
-    #     index += 1
-    #     print ("commit ", index, " : ", currentCommitSha)
+        index += 1
+        print ("commit ", index, " : ", currentCommitSha)
 
 
 
@@ -112,8 +112,7 @@ def analyse_repo(repository):
         for k, tupel in enumerate((l['name'], l['commit']['sha'] ) for l in j):
             (name,sha) = tupel
             print("")
-            print("branch # ",(k+1),"\n", "name: ", name,"\n", "sha: ", sha)
-            print("")
+            # print("branch # ",(k+1),"\n", "name: ", name,"\n", "sha: ", sha)
 
         t = requests.get("https://api.github.com/repos/{}/{}/branches/{}".format(i.owner.login,i.name,name))
         h = json.loads(t.text)
