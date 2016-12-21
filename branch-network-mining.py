@@ -1,3 +1,4 @@
+
 # branch-network-mining.py
 # Extract branch networks of a repository in a GraphML file
 #
@@ -54,6 +55,7 @@ import sys
 import requests
 import json
 import traceback 
+from copy import deepcopy
 
 # GLOBAL VARIABLES
 # Enables tracing in the terminal
@@ -93,7 +95,13 @@ def get_all_forks_branches(repository):
         # Gets through recursive processing the branches eventually created in the forks of the current fork
         forksCommitsList = get_all_forks_branches(fork)
         for name,sha in forksCommitsList.items():
-            branchList[name] = sha
+
+            # change name if branch exists in branchList, else add commit to branchList
+            if name in branchList.keys():
+                branchList[name+str(random.randint(0,100))] = sha
+          
+            else:
+                branchList[name] = sha
 
     return branchList
 
@@ -218,9 +226,6 @@ def createGraphML(repository):
             "directed":"true",
             "source":predecessor.sha,
             "target":currentCommitSha,
-
-            # "source":currentCommitSha,
-            # "target":predecessor.sha,
             "color": "#99ccff"})
 
     # write the GraphML file in the subdirectory "/results"
@@ -249,7 +254,7 @@ if __name__ == "__main__":
        commitsMasterBranch.append(commit)
     get_predecessors(commitsMasterBranch[0], 'origin')
     numberKnownCommits = len(knownCommits)
-    print ("\n" + str(numberKnownCommits) + " commits found in the master branch (last commit: " + knownCommits[-1] + ")")
+    print ("\n" + str(numberKnownCommits) + " commits found in the master branch (last commit: " + knownCommits[0] + ")")
     
     # Gets all branches of the forks of the given repository
     print ("\nLooking for other branches ")
@@ -270,7 +275,6 @@ if __name__ == "__main__":
     createGraphML(repo)
     
     print ("\ndone. \n")
-    
     
     
     
